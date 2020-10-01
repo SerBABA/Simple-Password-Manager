@@ -37,7 +37,7 @@ class Model:
             salt TEXT NOT NULL,
             UNIQUE (id, user),
             FOREIGN KEY (user) REFERENCES {} (id)
-            )""".format(self.STORED_ACCOUNTS_TABLE_NAME, self.USERS_TABLE_NAME))
+            );""".format(self.STORED_ACCOUNTS_TABLE_NAME, self.USERS_TABLE_NAME))
 
             # Creating users table
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
@@ -45,7 +45,16 @@ class Model:
             username TEXT NOT NULL,
             password TEXT NOT NULL,
             UNIQUE (username)
-            )""".format(self.USERS_TABLE_NAME))
+            );""".format(self.USERS_TABLE_NAME))
+
+            self.c.execute("""CREATE TRIGGER IF NOT EXISTS ensureUserExists
+            BEFORE INSERT ON {}
+            FOR EACH ROW
+            WHEN NOT EXISTS (SELECT * FROM {} WHERE id=new.user)
+            BEGIN
+                SELECT RAISE (ROLLBACK, 'Unknown user id.');
+            END;
+            """.format(self.STORED_ACCOUNTS_TABLE_NAME, self.USERS_TABLE_NAME))
 
             self.commit()
         except TypeError:
@@ -64,7 +73,8 @@ class Model:
             new_account.password, new_account.salt))
         
             self.commit()
-        except:
+        except Exception as e:
+            print(e)
             self.rollback()
 
 
