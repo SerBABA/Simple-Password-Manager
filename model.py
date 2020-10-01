@@ -1,6 +1,6 @@
 import sqlite3
-import account
-import user
+import Account
+import User
 
 
 class Model:
@@ -16,14 +16,20 @@ class Model:
     def commit(self):
         self.conn.commit()
 
+
     def rollback(self):
         self.conn.rollback()
-    
+ 
+
+    def close_conn(self):
+        self.conn.close()
+
+
     def create_tables(self):
         # Creating encrypted accounts table for database
         try:
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER NOT NULL AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             user INTEGER NOT NULL,
             type TEXT NOT NULL,
             username TEXT NOT NULL,
@@ -35,22 +41,38 @@ class Model:
 
             # Creating users table
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER AUTOINCREMENT PRIMARY KEY
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             password TEXT NOT NULL,
             UNIQUE (username)
             )""".format(self.USERS_TABLE_NAME))
 
             self.commit()
+        except TypeError:
+            self.rollback()
+
+
+    def insert_new_account(self, new_account):
+        """ """
+        if not isinstance(new_account, Account.Account):
+            raise TypeError("new_account must be of type Account")
+        try:
+            sql = """INSERT INTO {} (user, type, username, password, salt)
+                VALUES (?, ?, ?, ?, ?)""".format(self.STORED_ACCOUNTS_TABLE_NAME)
+
+            self.c.execute(sql, (new_account.user, new_account.type, new_account.username,
+            new_account.password, new_account.salt))
+        
+            self.commit()
         except:
             self.rollback()
 
 
-    def close_conn(self):
-        self.conn.close()
+        
 
-
-    def insert_new_account(self, ):
-        """ """
-
+if __name__ == "__main__":
+    db = Model("vault.db")
+    ac =  Account.Account("type", "user", "pass", "salt", 1)
+    db.insert_new_account(ac)
+        
 

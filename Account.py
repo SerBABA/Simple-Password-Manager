@@ -1,6 +1,6 @@
 class Account:
 
-    def __init__(self, acc_type, username, password, salt, user_id=None, acc_id=None):
+    def __init__(self, acc_type, username, password, salt=None, user_id=None, acc_id=None):
             self.id = acc_id
             self.user = user_id
             self.type = acc_type
