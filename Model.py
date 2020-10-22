@@ -57,7 +57,7 @@ class Model:
             """.format(self.STORED_ACCOUNTS_TABLE_NAME, self.USERS_TABLE_NAME))
 
             self.commit()
-        except TypeError:
+        except:
             self.rollback()
 
 
