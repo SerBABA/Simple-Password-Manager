@@ -1,6 +1,5 @@
 import sqlite3
-import Account
-import User
+from lib import Account, User
 
 
 class Model:
@@ -12,6 +11,7 @@ class Model:
         self.conn = sqlite3.connect(db_name)
         self.c = self.conn.cursor()
         self.create_tables()
+
 
     def commit(self):
         self.conn.commit()
@@ -43,10 +43,14 @@ class Model:
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
-            password TEXT NOT NULL,
+            password TEXT NOT NULL
             UNIQUE (username)
             );""".format(self.USERS_TABLE_NAME))
 
+            # Creating ensureUserExists trigger. This trigger raises a Unknown User Id when
+            # insertion is occured on the SOTRED_ACCOUNTS_TABLE. This also triggers a rollback,
+            # which undoes the changes. THis is to prevent addition of accounts that don't link
+            # into any other user accounts. 
             self.c.execute("""CREATE TRIGGER IF NOT EXISTS ensureUserExists
             BEFORE INSERT ON {}
             FOR EACH ROW
@@ -57,7 +61,8 @@ class Model:
             """.format(self.STORED_ACCOUNTS_TABLE_NAME, self.USERS_TABLE_NAME))
 
             self.commit()
-        except:
+        except Exception as e:
+            print(e)
             self.rollback()
 
 
@@ -77,6 +82,22 @@ class Model:
             print(e)
             self.rollback()
 
+
+    def insert_new_user(self, new_user):
+        """ """
+        if not isinstance(new_user, User.User):
+            raise TypeError("new_user must be of type User")
+        
+        try:
+            sql = """INSERT INTO {} (username, password) 
+                VALUES (?, ?)""".format(self.USERS_TABLE_NAME)
+
+            self.c.execute(sql, (new_user.username, new_user.password))
+
+            self.commit()
+        except Exception as e:
+            print(e)
+            self.rollback()
 
         
 

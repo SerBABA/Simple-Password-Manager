@@ -7,3 +7,4 @@ class Vault():
 
         self.db = None
         self.is_owner = False
+        
