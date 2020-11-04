@@ -5,7 +5,7 @@ class View:
         self.controller = controller
 
         self.CMDS = {
-            "sign_up": self.controller.sign_up
+            "sign_up": self.controller.sign_up_event_handler
         }
 
     def invoke_action(self, action):        

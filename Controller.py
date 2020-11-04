@@ -13,15 +13,12 @@ class Controller():
 
         self.model = model
         self.view = view
-        self.MAX_GUESS_ATTEMPTS = 3
-        self.MINIMUM_PASSWORD_LENGTH = 4
-        self.is_owner = False
 
         self.view.set_handler(self) 
         self.view.serve()
 
 
-    def sign_up(self):
+    def sign_up_event_handler(self):
         """
         docstring
         """
