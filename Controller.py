@@ -17,6 +17,16 @@ class Controller():
         self.MINIMUM_PASSWORD_LENGTH = 4
         self.is_owner = False
 
+        self.view.set_handler(self) 
+        self.view.serve()
+
+
+    def sign_up(self):
+        """
+        docstring
+        """
+        print('Sign up')
+        pass
 
 
 if __name__ == "__main__":
