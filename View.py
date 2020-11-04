@@ -1,21 +1,36 @@
+from getpass import getpass
+
 class View:
 
     def set_handler(self, controller):
 
         self.controller = controller
 
-        self.CMDS = {
-            "sign_up": self.controller.sign_up_event_handler
-        }
 
-    def invoke_action(self, action):        
-        try:
-            self.CMDS[action]()
-        except Exception as e:
-            print('Unable to get action {}'.format(action))
-            print()
+    def sign_up_form(self):
+        """ """
+        print('Please fill in the following details:')
+        username = input('Choose username>>>')
+        password = getpass('Choose password>>>')
+        repeat_password = getpass('Repeat password>>')
 
-    def serve(self):
-        print("Welcome to the vault!!!")
-        action = input("Action? ")
-        self.invoke_action(action)
+        return username, password, repeat_password
+
+
+    def sign_up_form_fail(self, message=''):
+
+        if not isinstance(message, str):
+            raise TypeError('Message provided is not of type string.')
+
+        print('Sign up has failed!!!\n')
+        print('Reason: {}'.format(message))
+
+
+    def sign_up_form_success(self, message=''):
+
+        if not isinstance(message, str):
+            raise TypeError('Message provided is not of type string.')
+
+        print('Sign up has succseeded\n')
+
+        

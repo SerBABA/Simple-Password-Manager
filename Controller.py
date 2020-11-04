@@ -4,27 +4,46 @@ from View  import View
 
 class Controller():
     
-    def __init__(self, model, view):
+    def __init__(self):
 
-        if not isinstance(model, Model):
-            raise TypeError('Model given to controller is not of class Model.')
-        if not isinstance(view, View):
-            raise TypeError('View given to controller is not of class View.')
-
-        self.model = model
-        self.view = view
-
+        self.model = Model()
+        self.view = View()
         self.view.set_handler(self) 
-        self.view.serve()
+
+        self.CMDS = {
+            "sign_up": self.sign_up_handler
+        }
 
 
-    def sign_up_event_handler(self):
-        """
-        docstring
-        """
-        print('Sign up')
-        pass
+    def command_handler(self, message):
+        if not isinstance(message, str):
+            raise TypeError('Message given to command_handler was not of type string.')
+
+        try:
+            self.CMDS[message]()
+        except KeyError:
+            print('Unkown command')
+
+        
+    def sign_up_handler(self):
+        """ """
+        username, password, repeat_password = self.view.sign_up_form()
+        response = self.model.authenticate_sign_up_values(username, password, repeat_password)
+
+        if response['status'] == 200:
+            if self.model.sign_up_user(username, password):
+                self.view.sign_up_form_success(response['msg'])
+            else:
+                self.view.sign_up_form_fail(response['msg'])
+        else:
+            self.view.sign_up_form_fail(response['msg'])
+
+
+    def sign_in_handler(self):
+        raise NotImplementedError()
+
+
 
 
 if __name__ == "__main__":
-    app = Controller(Model(), View())
+    app = Controller()

@@ -27,6 +27,7 @@ class DatabaseHandler:
     def begin_transaction(self):
         self.conn.execute('begin')
 
+
     def commit(self):
         self.conn.execute('commit')
 
@@ -141,9 +142,32 @@ class DatabaseHandler:
             self.rollback()
 
 
+    def username_not_exists(self, username):
+
+        if not isinstance(username, str):
+            raise TypeError('Username is not of type string.')
+
+        self.begin_transaction()
+
+        try:
+            query = """SELECT COUNT(*) as COUNT FROM {} WHERE username = ?""".format(self.USERS_TABLE_NAME)
+
+            self.c.execute(query, (username, ))
+            result = self.c.fetchone()[0] # Gets the scalar count value.
+            self.commit()
+        except Exception as e:
+            print(e)
+            result = None
+            self.rollback()
+
+        if result != None:
+            return result <= 0
+        else:
+            return False
+
+
 if __name__ == "__main__":
     db = DatabaseHandler("vault")
-    ac =  Account.Account("type", "user", "pass", "salt", 1)
-    db.insert_new_account(ac)
+    db.username_not_exists('test')
         
 
