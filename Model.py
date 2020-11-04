@@ -34,7 +34,7 @@ class Model:
         if format_response['status'] != 200:
             return format_response
 
-        is_new_username = self.db_handler.username_not_exists(username)
+        is_new_username = self.db_handler.is_new_username(username)
         
         if not is_new_username:
             return {'status': 400, 'msg': 'Username already exists!'}

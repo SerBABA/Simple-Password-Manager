@@ -142,7 +142,7 @@ class DatabaseHandler:
             self.rollback()
 
 
-    def username_not_exists(self, username):
+    def is_new_username(self, username):
 
         if not isinstance(username, str):
             raise TypeError('Username is not of type string.')
