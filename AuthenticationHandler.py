@@ -1,15 +1,17 @@
+from lib import EncryptionHandler
+
 class AuthenticationHandler:
 
     def __init__(self):        
         
-        self.MAX_GUESSES = 3
-        self.guessess_remaining = self.MAX_GUESSES
-
         self.MINIMUM_USERNAME_LENGTH = 4
         self.MINIMUM_PASSWORD_LENGTH = 4
+        self.crypt = EncryptionHandler.EncryptionHandler()
 
         self.MAXIMUM_USERNAME_LENGTH = 20
         self.MAXIMUM_PASSWORD_LENGTH = 20        
+
+        self.known_tokens = {}
 
     def valid_username_format(self, username):
 
@@ -28,6 +30,21 @@ class AuthenticationHandler:
 
         return response
 
+    def generate_token(self, user_id):
+        number_tries = 10
+        token = self.crypt.generate_token()
+        
+        try:
+            while number_tries > 0:
+                self.known_tokens[token]
+                token = self.crypt.generate_token()
+                number_tries -= 1
+
+            return None
+            
+        except KeyError:
+            self.known_tokens[token] = user_id
+            return token
 
     def valid_password_format(self, password):
     

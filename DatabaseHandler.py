@@ -7,18 +7,20 @@ import re
 from lib import Account, User
 
 
+# New idea requires the db (database) to have a seperate file per user, and when a user wants
+# to access their data the db is loaded into memory and read for the user.
 class DatabaseHandler:
 
     def __init__(self, db_name='vault'):
 
         # Database related stuff
         if re.fullmatch(r'[a-zA-Z]+.db', db_name) is None:
-            self.DB_NAME = db_name + '.db'
+            self.db_name = db_name + '.db'
         else:
-            self.DB_NAME = db_name
+            self.db_name = db_name
         self.STORED_ACCOUNTS_TABLE_NAME = "Accounts"
         self.USERS_TABLE_NAME = "Users"
-        self.conn = sqlite3.connect(self.DB_NAME)
+        self.conn = sqlite3.connect(self.db_name)
         self.conn.isolation_level = None
         self.c = self.conn.cursor()
         self.create_tables()
@@ -45,10 +47,11 @@ class DatabaseHandler:
         self.begin_transaction()
         try:
             # Creating users table
+            # Introduce a random id number to introduce more randomness!!!!!!!!!!!!!!!!!!!
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
             username TEXT NOT NULL,
-            password TEXT NOT NULL,
+            hash TEXT NOT NULL,
             salt TEXT NOT NULL,
             UNIQUE (username)
             );""".format(self.USERS_TABLE_NAME))
@@ -58,7 +61,7 @@ class DatabaseHandler:
             user INTEGER NOT NULL,
             type TEXT NOT NULL,
             username TEXT NOT NULL,
-            password TEXT NOT NULL,
+            hash TEXT NOT NULL,
             salt TEXT NOT NULL,
             UNIQUE (id, user),
             FOREIGN KEY (user) REFERENCES {} (id)
@@ -81,6 +84,7 @@ class DatabaseHandler:
         except Exception as e:
             print(e)
             self.rollback()
+            
 
 
     def insert_new_account(self, new_account):
@@ -91,7 +95,7 @@ class DatabaseHandler:
         self.begin_transaction()
 
         try:
-            sql = """INSERT INTO {} (user, type, username, password, salt)
+            sql = """INSERT INTO {} (user, type, username, hash, salt)
                 VALUES (?, ?, ?, ?, ?)""".format(self.STORED_ACCOUNTS_TABLE_NAME)
 
             self.c.execute(sql, (new_account.user, new_account.type, new_account.username,
@@ -103,6 +107,11 @@ class DatabaseHandler:
             self.rollback()
 
 
+    def disconnect(self):
+        """ """
+        self.c.close()
+
+
     def insert_new_user(self, new_user):
         """ """
         if not isinstance(new_user, User.User):
@@ -111,15 +120,41 @@ class DatabaseHandler:
         self.begin_transaction()
         
         try:
-            sql = """INSERT INTO {} (username, password, salt) 
+            sql = """INSERT INTO {} (username, hash, salt) 
                 VALUES (?, ?)""".format(self.USERS_TABLE_NAME)
 
             self.c.execute(sql, (new_user.username, new_user.password, new_user.salt))
 
             self.commit()
+            return {'status': 200, 'msg': 'User successfully created.'}
         except Exception as e:
             print(e)
             self.rollback()
+            return {'status': 500, 'msg': 'Something went wrong while adding user.'}
+
+
+    def get_user_creds(self, username):
+        """ """
+        if not isinstance(username, str):
+            raise TypeError('Username must be of type string!')
+        
+        self.begin_transaction()
+
+        try:
+            sql = """SELECT id, hash, salt 
+                     FROM {}
+                     WHERE username = ? """
+            
+            self.c.execute(sql, (username,))
+            result = self.c.fetchone()
+            self.commit()
+            
+            return {'id': result[0], 'hash': result[1], 'salt': result[2]}
+
+        except Exception as e:
+            print(e)
+            return None
+
 
 
     def delete_account(self, account_id=None, owner_id=None):
@@ -168,6 +203,6 @@ class DatabaseHandler:
 
 if __name__ == "__main__":
     db = DatabaseHandler("vault")
-    db.username_not_exists('test')
+    db.is_new_username('test')
         
 

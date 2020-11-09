@@ -3,7 +3,7 @@ import sqlite3
 import re
 
 # lib imports
-from lib import Account, User
+from lib import Account, User, EncryptionHandler
 
 # Handler imports
 from AuthenticationHandler import AuthenticationHandler
@@ -15,14 +15,11 @@ class Model:
     def __init__(self, db_name='vault'):
         self.db_handler = DatabaseHandler(db_name)
         self.auth_handler = AuthenticationHandler()
-        
+        self.crypt = EncryptionHandler.EncryptionHandler()
 
-    def add_new_account(self, account):
 
-        if not isinstance(account, Account.Account):
-            raise TypeError("account must be of type Account")
-
-        self.db_handler.insert_new_account(account)
+    def disconnect(self):
+        self.db_handler.disconnect()
 
 
     def authenticate_username(self, username):
@@ -57,6 +54,8 @@ class Model:
         return response
 
 
+
+    # need to sanatize against second order sql injection attacks...
     def authenticate_sign_up_values(self, username, password, repeat_password):
         """ """
         response = {'status': 200, 'msg': 'Account has successfully been validated.'}
@@ -75,8 +74,53 @@ class Model:
         return response
 
 
+    def authenticate_user_credentials(self, username, password):
+        
+        # get user credentials 
+        user_creds = self.db_handler.get_user_creds(username)
+
+        # otherwise fail
+        if user_creds == None:
+            return {'status': 403, 'msg': 'Username or password are invalid.'}
+        else:
+            
+            # compare the candidate password to the hash. If successful return id as token.
+            if self.crypt.compare_hash(password, user_creds['hash'], user_creds['salt']):
+
+                # Generate and append the token.
+                token = self.auth_handler.generate_token(user_creds['id'])
+
+                if token == None:
+                    return {'status': 500, 'msg': 'Something went wrong...'}
+                else:
+                    return {'status': 200, 'msg': 'User credentials are correct.', 'token': token}
+            
+            # Otherwise return nothing and clear the memory.
+            else:
+                user_creds = None
+                return {'status': 403, 'msg': 'User credentials are invalid!'}
+
+
     def sign_up_user(self, username, password):
-        raise NotImplementedError('Sign up to database has not been implemented!')
+
+        # Hash the password using Bycrypt and get the os.random() salt.
+        salt = self.crypt.generate_salt()
+        password_hash = self.crypt.hash(password, salt)
+
+        # Create User object...
+        new_user = User.User(username, password, salt)
+
+        # Add the user to the database
+        response = self.db_handler.insert_new_user(new_user)
+
+        # on any errors return a fail response. Otherwise return a success response.
+        if response['status'] != 200:
+            return {'status': 500, 'msg': 'Something went wrong while adding the user.'}
+        else:
+            return response
+
+
+        # raise NotImplementedError('Sign up to database has not been implemented!')
 
 
 if __name__ == "__main__":

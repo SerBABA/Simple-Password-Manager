@@ -6,6 +6,19 @@ class View:
 
         self.controller = controller
 
+    def sign_in_form(self):
+        print('Please fill in the following details: ')
+        username = input('Username>> ')
+        password = getpass('Password>> ')
+        return username, password
+
+    def sign_in_form_fail(self):
+        print('Failed to sign in!')
+    
+
+    def sign_in_form_success(self):
+        print('Successfully signed in!')
+
 
     def sign_up_form(self):
         """ """
