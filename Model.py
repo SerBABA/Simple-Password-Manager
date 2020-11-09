@@ -20,7 +20,7 @@ class Model:
 
     def disconnect(self):
         self.db_handler.disconnect()
-
+        
 
     def authenticate_username(self, username):
 
@@ -105,10 +105,10 @@ class Model:
 
         # Hash the password using Bycrypt and get the os.random() salt.
         salt = self.crypt.generate_salt()
-        password_hash = self.crypt.hash(password, salt)
+        password_hash = self.crypt.hash_password(password, salt)
 
         # Create User object...
-        new_user = User.User(username, password, salt)
+        new_user = User.User(username, password_hash, salt)
 
         # Add the user to the database
         response = self.db_handler.insert_new_user(new_user)

@@ -20,16 +20,16 @@ class Controller():
     def disconnect(self):
         """ """
         self.model.disconnect()
+        return self.view.disconnect()
 
 
-    def command_handler(self, message):
+    def command_handler(self, message, token=None):
         if not isinstance(message, str):
-            raise TypeError('Message given to command_handler was not of type string.')
-
+            return self.view.build_response(400, 'Message given to command_handler was not of type string.')
         try:
-            self.CMDS[message]()
+            return self.CMDS[message]()
         except KeyError:
-            print('Unkown command')
+            return self.view.build_response(400, 'Unkown command')
 
 
     def sign_up_handler(self):
@@ -38,12 +38,13 @@ class Controller():
         response = self.model.authenticate_sign_up_values(username, password, repeat_password)
 
         if response['status'] == 200:
-            if self.model.sign_up_user(username, password)['status'] == 200:
-                self.view.sign_up_form_success(response['msg'])
+            response = self.model.sign_up_user(username, password)
+            if response['status'] == 200:
+                return self.view.sign_up_form_success(response['status'], response['msg'])
             else:
-                self.view.sign_up_form_fail(response['msg'])
+                return self.view.sign_up_form_fail(response['status'], response['msg'])
         else:
-            self.view.sign_up_form_fail(response['msg'])
+            return self.view.sign_up_form_fail(response['status'], response['msg'])
 
 
     def sign_in_handler(self):
@@ -55,15 +56,11 @@ class Controller():
 
         # store user id (some kind of token later on) and send message.
         if response['status'] == 200:
-            token = response['token']
-            self.view.sign_in_form_success()
-
-            # Store TOKEN
+            return self.view.sign_in_form_success(response['token'])
 
         # Otherwise fail and send message.
         else:
-            self.view.sign_in_form_fail()
-            return None
+            return self.view.sign_in_form_fail(response['status'], response['msg'])
 
 
 

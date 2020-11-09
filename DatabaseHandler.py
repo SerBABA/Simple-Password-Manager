@@ -47,7 +47,6 @@ class DatabaseHandler:
         self.begin_transaction()
         try:
             # Creating users table
-            # Introduce a random id number to introduce more randomness!!!!!!!!!!!!!!!!!!!
             self.c.execute("""CREATE TABLE IF NOT EXISTS {} (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             username TEXT NOT NULL,
@@ -121,7 +120,7 @@ class DatabaseHandler:
         
         try:
             sql = """INSERT INTO {} (username, hash, salt) 
-                VALUES (?, ?)""".format(self.USERS_TABLE_NAME)
+                VALUES (?, ?, ?)""".format(self.USERS_TABLE_NAME)
 
             self.c.execute(sql, (new_user.username, new_user.password, new_user.salt))
 
@@ -143,7 +142,7 @@ class DatabaseHandler:
         try:
             sql = """SELECT id, hash, salt 
                      FROM {}
-                     WHERE username = ? """
+                     WHERE username = ? """.format(self.USERS_TABLE_NAME)
             
             self.c.execute(sql, (username,))
             result = self.c.fetchone()
@@ -158,9 +157,7 @@ class DatabaseHandler:
 
 
     def delete_account(self, account_id=None, owner_id=None):
-        """
-
-        """
+        """ """
         if not isinstance(account_id, int):
             raise TypeError("account_id must of type integer.")
         if not isinstance(owner_id, int):
