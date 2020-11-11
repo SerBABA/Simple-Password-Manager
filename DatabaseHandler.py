@@ -7,6 +7,20 @@ import re
 from lib import Account, User
 
 
+def TransactionDecorator(func):
+    def wrapper(obj, *args, **kwargs):
+        obj.begin_transaction()
+        try:
+            res =  func(obj, *args, **kwargs)
+            obj.commit()
+            return res
+        except sqlite3.Error as e:
+            print(e)
+            obj.rollback()
+            return None
+    return wrapper
+
+
 # New idea requires the db (database) to have a seperate file per user, and when a user wants
 # to access their data the db is loaded into memory and read for the user.
 class DatabaseHandler:
@@ -131,13 +145,13 @@ class DatabaseHandler:
             self.rollback()
             return {'status': 500, 'msg': 'Something went wrong while adding user.'}
 
-
+    @TransactionDecorator
     def get_user_creds(self, username):
         """ """
         if not isinstance(username, str):
             raise TypeError('Username must be of type string!')
         
-        self.begin_transaction()
+        # self.begin_transaction()
 
         try:
             sql = """SELECT id, hash, salt 
@@ -146,13 +160,14 @@ class DatabaseHandler:
             
             self.c.execute(sql, (username,))
             result = self.c.fetchone()
-            self.commit()
+            # self.commit()
             
             return {'id': result[0], 'hash': result[1], 'salt': result[2]}
 
         except Exception as e:
             print(e)
-            return None
+            # self.rollback
+            # return None
 
 
 
@@ -201,5 +216,3 @@ class DatabaseHandler:
 if __name__ == "__main__":
     db = DatabaseHandler("vault")
     db.is_new_username('test')
-        
-
