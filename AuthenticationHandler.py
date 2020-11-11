@@ -43,7 +43,7 @@ class AuthenticationHandler:
             return None
             
         except KeyError:
-            token = 'tok ' + token
+            #token = 'tok ' + token
             self.known_tokens[token] = user_id
             return token
 

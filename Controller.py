@@ -12,8 +12,8 @@ class Controller():
 
         self.CMDS = {
             "exit": self.disconnect,
-            "sign_up": self.sign_up_handler,
-            "sign_in": self.sign_in_handler
+            "sign up": self.sign_up_handler,
+            "sign in": self.sign_in_handler
         }
 
 
